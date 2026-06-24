@@ -66,3 +66,7 @@ Sources/GitSwitch/
 make-icon.swift        Generates the app icon
 make-app.sh            Packages (and installs) GitSwitch.app
 ```
+
+## License
+
+MIT, see [LICENSE](LICENSE).
