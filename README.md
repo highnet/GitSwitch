@@ -10,10 +10,10 @@ bar. It is to `gh auth switch` what LocalPort is to `lsof`.
 - The active account is highlighted; one click switches to any other
 - Host and token protocol shown per account; filter by login, host, or scope
 - Menu bar (tray) icon shows the active login, with a quick dropdown to switch
-- Auto-matches your global git commit identity (`user.name` / `user.email`) to
-  the active account whenever it changes, pulling the email from the GitHub API
-  (falling back to the `users.noreply.github.com` privacy address). Toggle it off
-  with **Auto**, or force it any time with **Match now**
+- Always keeps your global git commit identity (`user.name` / `user.email`)
+  matched to the active account, syncing at launch and on every switch, pulling
+  the email from the GitHub API (falling back to the `users.noreply.github.com`
+  privacy address)
 - Single-window, runs quietly in the menu bar
 - Native SwiftUI, no dependencies
 

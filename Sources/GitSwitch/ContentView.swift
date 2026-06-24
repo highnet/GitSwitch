@@ -189,19 +189,6 @@ struct ContentView: View {
                         .truncationMode(.middle)
                 }
                 Spacer()
-                Toggle("Auto", isOn: $store.autoMatchIdentity)
-                    .toggleStyle(.switch)
-                    .controlSize(.mini)
-                    .font(.system(size: 10))
-                    .fixedSize()
-                    .help("Automatically match the commit identity to the active account whenever it changes")
-                Button(action: { store.syncCommitIdentity() }) {
-                    Text("Match now")
-                        .font(.system(size: 10, weight: .medium))
-                }
-                .buttonStyle(PillButtonStyle(tint: Theme.accent))
-                .disabled(store.busy || store.activeLogin == nil)
-                .help("Set the global git user.name/user.email from the active account now")
             }
             .padding(.horizontal, 12)
             .padding(.vertical, 6)

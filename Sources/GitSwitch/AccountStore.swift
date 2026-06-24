@@ -15,20 +15,13 @@ final class AccountStore: ObservableObject {
     /// nil = the "All" tab; otherwise a host to narrow to.
     @Published var selectedHost: String? = nil
 
-    /// When on, the global git commit identity is updated to match the active
-    /// account whenever the active account changes (in-app or externally).
-    @Published var autoMatchIdentity: Bool = UserDefaults.standard.object(forKey: "autoMatchIdentity") as? Bool ?? true {
-        didSet { UserDefaults.standard.set(autoMatchIdentity, forKey: "autoMatchIdentity") }
-    }
-
     /// Seconds between automatic refreshes.
     let interval: TimeInterval = 5
 
     private var timer: Timer?
-    // Tracks the active login across refreshes so we can detect a change and
-    // auto-match the commit identity. `hasBaseline` avoids firing on first load.
+    // Tracks the active login across refreshes so we re-match the commit
+    // identity whenever the active account changes (and once at launch).
     private var lastActiveLogin: String?
-    private var hasBaseline = false
 
     init() {
         refresh()
@@ -77,13 +70,13 @@ final class AccountStore: ObservableObject {
                     self.selectedHost = nil
                 }
 
-                // Detect an active-account change and auto-match the identity.
+                // Always keep the commit identity matched to the active account:
+                // sync once at launch and again whenever the active login changes.
                 let newActive = scanned.first(where: \.isActive)?.login
-                let changed = self.hasBaseline && newActive != self.lastActiveLogin
+                let changed = newActive != self.lastActiveLogin
                 self.lastActiveLogin = newActive
-                self.hasBaseline = true
-                if changed, self.autoMatchIdentity, newActive != nil {
-                    self.matchIdentityToActive(announce: true)
+                if changed, newActive != nil {
+                    self.matchIdentityToActive()
                 }
             }
         }
@@ -104,22 +97,17 @@ final class AccountStore: ObservableObject {
         }
     }
 
-    /// Manually set the global git commit identity to match the active account.
-    func syncCommitIdentity() {
-        matchIdentityToActive(announce: true)
-    }
-
     /// Reads the active account's commit identity from the GitHub API and writes
-    /// it into the global git config. Used by both the manual button and the
-    /// automatic match-on-switch.
-    private func matchIdentityToActive(announce: Bool) {
+    /// it into the global git config, so commits are authored as the active
+    /// account. Runs automatically at launch and on every account change.
+    private func matchIdentityToActive() {
         Task.detached(priority: .userInitiated) {
             let set = GitRunner.syncCommitIdentityToActive()
             await MainActor.run {
                 if let set {
                     self.identity = set
-                    if announce { self.status = "Commit identity now \(set.email ?? "?")" }
-                } else if announce {
+                    self.status = "Commit identity now \(set.email ?? "?")"
+                } else {
                     self.status = "Could not read identity from the active account"
                 }
             }
